@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #chat-container {
+            max-width: 70%;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #chat-box {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        #user-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        #user-id {
+            width: calc(100% - 70%);
+            padding: 10px;
+            margin: 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        #conv-id {
+            width: calc(100% - 70%);
+            padding: 10px;
+            margin: 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        #response-box {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #response {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #81817b;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        #send-button {
+            margin-left: 10px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-box"></div>
+
+    
+        <div id="response-box">
+            <input type="text" id="user-id" placeholder="User ID" name="user_id">
+        </div>
+        <div id="response-box">
+            <input type="text" id="conv-id" placeholder="Conversation ID" name="conv_id">
+        </div>
+        <div id="response-box">
+            <input type="text" id="user-input" placeholder="Enter your command..." name="prompt">
+            <button id="send-button" onclick="sendPrompt()">Send</button>
+        </div>
+   
+        
+        
+        <script>
+            let isResponseReceived = true;
+            function cleanInput(input) {
+                // Implement your input cleaning logic here
+                clean_text=input.replace('[a-zA-Z0-9\s]','')
+                // For simplicity, let's just trim leading and trailing whitespaces
+                return input.trim();
+            }
+        
+            function sendPrompt() {
+
+                if (!isResponseReceived) {
+                return; // Do nothing if the previous response is not received
+            }
+                var userPromptElement = document.getElementById('user-input');
+                var userPrompt = userPromptElement.value;
+                
+                // var input_prompt = document.getElementById('user-input').value;
+                var input_user_id = document.getElementById('user-id').value;
+                var input_conv_id = document.getElementById('conv-id').value;
+                // Clean the user input
+                var cleanedUserInput = cleanInput(userPrompt);
+                var chatBox = document.getElementById('chat-box');
+                var responseBox = document.getElementById('response');
+        
+                // Append cleaned user input to chat box
+                chatBox.innerHTML += '<div><strong>You:</strong> ' + cleanedUserInput + '</div>';
+                // Prepare the request
+                const requestOptions = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({user_id:input_user_id, conv_id:input_conv_id, prompt: cleanedUserInput })
+                };
+                
+                isResponseReceived = false;
+                // Send the request to the server
+                fetch('/abcd1', requestOptions)
+                    .then(response => response.text())
+                    .then(text => {
+                        // Append the server response to the chat box
+                        chatBox.innerHTML += '<div style="margin-top:10px;margin-bottom:10px;">' + text + '</div>';
+                        console.log(" txt : ", text);
+                        isResponseReceived = true;
+                    })
+                    .catch(err => {
+                        chatBox.innerHTML += '<div style="margin-top:10px;margin-bottom:10px;">' + 'please can you ask again' + '</div>';
+
+                        console.log("err : ", err);
+                        isResponseReceived = true;
+                    });
+        
+                // Clear the user input field after sending
+                userPromptElement.value = '';
+                input_user_id.value= '';
+                input_conv_id.value= '';
+                
+            }
+                    // Add event listener for Enter key press on user input field
+            document.getElementById("user-input").addEventListener("keyup", function(event) {
+            if (event.keyCode === 13) { // Check if Enter key is pressed
+            event.preventDefault();
+            sendPrompt(); // Call sendPrompt function
+            }
+            });
+        </script>
+        
+</body>
+</html>
